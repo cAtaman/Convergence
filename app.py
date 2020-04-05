@@ -1,13 +1,19 @@
+import os
+import time
+from collections import defaultdict
+from itertools import groupby
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-import os
 
 # Init app
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Database
+
+# ===============================================================
+# ======================  Database  =============================
+# ===============================================================
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -28,30 +34,148 @@ class Product(db.Model):
         self.name = name
 
 
+# Notes -- new functionality
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    datetime = db.Column(db.String)
+    user = db.Column(db.String(100))
+    content = db.Column(db.String)
+    count = defaultdict(int)
+
+    def __init__(self, user, date_time, content):
+        self.user = user
+        self.datetime = date_time
+        self.content = content
+
+    @classmethod
+    def get_count(cls):
+        return cls.count
+
+
 # Product Schema
 class ProductSchema(ma.Schema):
     class Meta:
         fields = ('id', 'name')
 
 
+# Notes Schema
+class NoteSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'datetime', 'user', 'content')
+
+
 # init schema
 product_schema = ProductSchema()
+note_schema = NoteSchema()
 products_schema = ProductSchema(many=True)
+notes_schema = NoteSchema(many=True)
 
+
+# ===============================================================
+# ========================  Utils  ==============================
+# ===============================================================
+def format_time(object):
+    object['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(object['datetime'])))
+    # return object
+
+
+# ===============================================================
+# ======================  Endpoints  ============================
+# ===============================================================
 @app.route('/')
 def hello_world():
-    return 'Hello World!'
+    notes = notes_schema.dump(Note.query.all())
+    notes = {k: list(g) for k, g in groupby(notes, key=lambda x: x['user'])}
+    users = ['<p> {}: {} </p>'.format(user, len(notes[user])) for user in notes]
+    users = ''.join(users)
+    count = sum([len(notes[user]) for user in notes])
+
+    html = '''<html>
+        <head>
+            <title> {title} </title>
+        </head>
+    
+        <body>
+            {paragraphs_with_tags}
+        </body >
+    </html >'''
+
+    title = 'AtamanBC - The one true timeline'
+    message = '</br>'\
+              '<p>Hello World! Greetings from Ataman</p>'\
+              '<p>=============================================================='\
+              '</br>==============================================================</p>'\
+              '</br>'\
+              '<h2>_______STATUS_______</h2>' \
+              '</br>' \
+              '<p>** Products app is still as is with unique products</p>'\
+              f'<p>** Notes service currently has {count} notes from {len(users)} unique users</p>' \
+              '</br>' \
+              '<h2>_______NOTES Users_______</h2>' \
+              f'<p>{users}</p>' \
+              '</br>' \
+              '</br>' \
+              '<h3> Go to... </h3>'\
+              '<a href="/notes"> List of Notes </a>' \
+              '</br>' \
+              '<a href="/products"> List of Products </a>'
+
+    return html.format(title=title, paragraphs_with_tags=message)
+
+# Get all notes
+@app.route('/notes', methods=['GET'])
+def get_notes():
+    all_notes = Note.query.all()
+    results = notes_schema.dump(all_notes)
+    [format_time(result) for result in results]
+    return jsonify(results)
+
+
+# Get one note
+@app.route('/notes/get', methods=['GET'])
+def get_note():
+    id_to_get = request.args['id']
+    all_notes = Note.query.filter_by(id=id_to_get).first()
+    result = note_schema.dump(all_notes)
+    format_time(result)
+    return jsonify(result)
+
+
+# Add notes
+@app.route('/notes/add', methods=['GET'])
+def add_note():
+    user = request.user_agent.platform + '_' + request.user_agent.browser
+    content = request.args['content']
+    date_time = time.time()
+    new_note = Note(user, date_time, content)
+
+    db.session.add(new_note)
+    db.session.commit()
+    Note.count[user] += 1
+    return 'Note added successfully', 200
+
+
+# Delete note
+@app.route('/notes/delete', methods=['GET'])
+def delete_note():
+    id_to_delete = request.args['id']
+    note = Note.query.filter_by(id=id_to_delete).first()
+    db.session.delete(note)
+    db.session.commit()
+
+    user = note.user
+    Note.count[user] -= 1
+    return 'Note deleted successfully', 200
+
 
 # Create  product
 @app.route('/product', methods=['POST'])
 def add_product():
     name = request.json['name']
-
     new_product = Product(name)
 
     db.session.add(new_product)
     db.session.commit()
-
     return product_schema.jsonify(new_product)
 
 
@@ -65,4 +189,6 @@ def get_products():
 
 # Run server
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=2099)
+
+
