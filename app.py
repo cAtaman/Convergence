@@ -5,6 +5,7 @@ from itertools import groupby
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+import requests
 
 # Init app
 app = Flask(__name__)
@@ -185,6 +186,15 @@ def get_products():
     all_products = Product.query.all()
     result = products_schema.dump(all_products)
     return jsonify(result)
+
+
+#####
+# Get all products
+@app.route('/req', methods=['GET'])
+def greq():
+    url = request.args['url']
+    req = requests.get(url)
+    return req.content
 
 
 # Run server
