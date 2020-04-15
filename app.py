@@ -145,7 +145,11 @@ def get_note():
 # Add notes
 @app.route('/notes/add', methods=['GET'])
 def add_note():
-    user = request.user_agent.platform + '_' + request.user_agent.browser
+    if request.user_agent.platform and request.user_agent.browser:
+        user = request.user_agent.platform + '_' + request.user_agent.browser
+    else:
+        user = request.user_agent.string
+        user = user.split('/')[0]
     content = request.args['content']
     date_time = time.time()
     new_note = Note(user, date_time, content)
