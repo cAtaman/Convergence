@@ -15,7 +15,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # ===============================================================
 # ======================  Database  =============================
 # ===============================================================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db', 'notes.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Init Database
@@ -75,8 +75,8 @@ notes_schema = NoteSchema(many=True)
 # ===============================================================
 # ========================  Utils  ==============================
 # ===============================================================
-def format_time(object):
-    object['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(object['datetime'])))
+def format_time(obj):
+    obj['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(obj['datetime'])))
     # return object
 
 
