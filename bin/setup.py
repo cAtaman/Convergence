@@ -8,7 +8,8 @@ from flask_bcrypt import Bcrypt
 base_dir = os.path.dirname(__file__)
 notes_db_path = os.path.join(base_dir, 'notes', 'database')
 
-# todo: call db creation scripts from here
+# todo: call db creation scripts from here (migration?)
+#       run setup {files?} of each individual app from here
 
 sqlalchemy_binds = {'notes': 'sqlite:///' + os.path.join(notes_db_path, 'notes.db')}  # add other db to this dictionary
 
