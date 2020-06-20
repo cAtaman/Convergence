@@ -1,8 +1,9 @@
 import os
 import time
+import json
 from collections import defaultdict
 from itertools import groupby
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import requests
@@ -17,6 +18,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # ===============================================================
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db', 'notes.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 # Init Database
 # global db
@@ -190,6 +192,29 @@ def get_products():
     all_products = Product.query.all()
     result = products_schema.dump(all_products)
     return jsonify(result)
+
+
+@app.route('/hng_team_neon', methods=['GET'])
+def get_team_form():
+    return render_template("hng.html")
+
+
+@app.route('/hng_team_neon.json', methods=['GET'])
+def get_json():
+    with open(os.path.join(basedir, 'team_neon.json'), 'r') as file:
+        neon = file.readlines()
+        members = []
+        for member in neon:
+            members.append(json.loads(member))
+    return jsonify(members)
+
+
+@app.route('/hng_team_neon', methods=['POST'])
+def add_member():
+    data = request.form
+    with open(os.path.join(basedir, 'team_neon.json'), 'a') as file:
+        file.write(json.dumps(data) + "\n")
+    return 'Record successfully added', 200
 
 
 #####
