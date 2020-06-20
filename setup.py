@@ -1,13 +1,13 @@
-import os
+import os.path
 import secrets
 import connexion
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
 
-base_dir = os.path.dirname(__file__)
-notes_db_path = os.path.join(base_dir, 'notes', 'database')
-payments_db_path = os.path.join(base_dir, 'payments', 'database')
+base_dir = os.path.abspath(os.path.dirname(__file__))
+notes_db_path = os.path.join(base_dir, 'notes', 'db')
+payments_db_path = os.path.join(base_dir, 'payments', 'db')
 
 # todo: call db creation scripts from here (migration?)
 #       run setup {files?} of each individual app from here

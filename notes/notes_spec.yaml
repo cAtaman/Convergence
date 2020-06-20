@@ -1,17 +1,53 @@
 swagger: "2.0"
 info:
   title: Notes
-  description: FlaskWebApp currently has the Notes app only
+  description: Notes app is a universal clipboard, accessible by all my devices
   version: 1.0.0
 
-basePath: /
-
+basePath: /notes/v1/
 consumes:
   - application/json
 produces:
   - application/json
 
+
 paths:
+  /notes:
+    get:
+      tags: [Notes]
+      operationId: notes.operations.get_notes
+      summary: Get all notes
+      description: Lists all available notes in the the database
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Returns the bio data for the student or group of students
+          schema:
+            $ref: '#/definitions/NotesList'
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+        404:
+          description: User does not exist
+
+
+definitions:
+  NotesList:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: integer
+        datetime:
+          type: string
+        user:
+          type: string
+        content:
+          type: string
+
 
 # todo: add routes
 

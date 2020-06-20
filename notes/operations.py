@@ -1,71 +1,12 @@
 import os
 import time
 import json
-from collections import defaultdict
 from itertools import groupby
-from flask import Flask, request, jsonify, render_template
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
+from flask import request, jsonify, render_template
 import requests
-
-# Init app
-app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-
-# ===============================================================
-# ======================  Database  =============================
-# ===============================================================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db', 'payments.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
-
-# Init Database
-# global db
-db = SQLAlchemy(app)
-
-# Init marshmallow
-ma = Marshmallow(app)
-
-
-# Asset class
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), unique=True)
-
-    def __init__(self, name):
-        self.name = name
-
-
-# Notes -- new functionality
-class Note(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    datetime = db.Column(db.String)
-    user = db.Column(db.String(100))
-    content = db.Column(db.String)
-    count = defaultdict(int)
-
-    def __init__(self, user, date_time, content):
-        self.user = user
-        self.datetime = date_time
-        self.content = content
-
-    @classmethod
-    def get_count(cls):
-        return cls.count
-
-
-# Product Schema
-class ProductSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'name')
-
-
-# Notes Schema
-class NoteSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'datetime', 'user', 'content')
-
+from setup import db, app
+from setup import base_dir
+from notes.models import ProductSchema, NoteSchema, Note, Product
 
 # init schema
 product_schema = ProductSchema()
@@ -74,9 +15,6 @@ products_schema = ProductSchema(many=True)
 notes_schema = NoteSchema(many=True)
 
 
-# ===============================================================
-# ========================  Utils  ==============================
-# ===============================================================
 def format_time(obj):
     obj['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(obj['datetime'])))
     # return object
@@ -97,36 +35,36 @@ def hello_world():
         <head>
             <title> {title} </title>
         </head>
-    
+
         <body>
             {paragraphs_with_tags}
         </body >
     </html >'''
 
     title = 'AtamanBC - The one true timeline'
-    message = '</br>'\
-              '<p>Hello World! Greetings from Ataman</p>'\
-              '<p>=============================================================='\
-              '</br>==============================================================</p>'\
-              '</br>'\
+    message = '</br>' \
+              '<p>Hello World! Greetings from Ataman</p>' \
+              '<p>==============================================================' \
+              '</br>==============================================================</p>' \
+              '</br>' \
               '<h2>_______STATUS_______</h2>' \
               '</br>' \
-              '<p>** Products app is still as is with unique products</p>'\
-              f'<p>** Notes service currently has {count} payments from {len(notes)} unique users</p>' \
+              '<p>** Products app is still as is with unique products</p>' \
+              f'<p>** Notes service currently has {count} notes from {len(notes)} unique users</p>' \
               '</br>' \
               '<h2>_______NOTES Users_______</h2>' \
               f'<p>{users}</p>' \
               '</br>' \
               '</br>' \
-              '<h3> Go to... </h3>'\
-              '<a href="/payments"> List of Notes </a>' \
+              '<h3> Go to... </h3>' \
+              '<a href="/notes"> List of Notes </a>' \
               '</br>' \
               '<a href="/products"> List of Products </a>'
 
     return html.format(title=title, paragraphs_with_tags=message)
 
-# Get all payments
-@app.route('/payments', methods=['GET'])
+
+# Get all notes
 def get_notes():
     all_notes = Note.query.all()
     results = notes_schema.dump(all_notes)
@@ -135,7 +73,7 @@ def get_notes():
 
 
 # Get one note
-@app.route('/payments/get', methods=['GET'])
+@app.route('/notes/get', methods=['GET'])
 def get_note():
     id_to_get = request.args['id']
     all_notes = Note.query.filter_by(id=id_to_get).first()
@@ -144,8 +82,8 @@ def get_note():
     return jsonify(result)
 
 
-# Add payments
-@app.route('/payments/add', methods=['GET'])
+# Add notes
+@app.route('/notes/add', methods=['GET'])
 def add_note():
     if request.user_agent.platform and request.user_agent.browser:
         user = request.user_agent.platform + '_' + request.user_agent.browser
@@ -163,7 +101,7 @@ def add_note():
 
 
 # Delete note
-@app.route('/payments/delete', methods=['GET'])
+@app.route('/notes/delete', methods=['GET'])
 def delete_note():
     id_to_delete = request.args['id']
     note = Note.query.filter_by(id=id_to_delete).first()
@@ -201,7 +139,7 @@ def get_team_form():
 
 @app.route('/hng_team_neon.json', methods=['GET'])
 def get_json():
-    with open(os.path.join(basedir, 'team_neon.json'), 'r') as file:
+    with open(os.path.join(base_dir, 'team_neon.json'), 'r') as file:
         neon = file.readlines()
         members = []
         for member in neon:
@@ -212,7 +150,7 @@ def get_json():
 @app.route('/hng_team_neon', methods=['POST'])
 def add_member():
     data = request.form
-    with open(os.path.join(basedir, 'team_neon.json'), 'a') as file:
+    with open(os.path.join(base_dir, 'team_neon.json'), 'a') as file:
         file.write(json.dumps(data) + "\n")
     return 'Record successfully added', 200
 
@@ -224,10 +162,4 @@ def greq():
     url = request.args['url']
     req = requests.get(url)
     return req.content
-
-
-# Run server
-if __name__ == "__main__":
-    app.run(debug=True, port=2099)
-
 

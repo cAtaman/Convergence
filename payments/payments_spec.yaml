@@ -1,20 +1,60 @@
 swagger: "2.0"
 info:
-  title: Notes
-  description: FlaskWebApp currently has the Notes app only
+  title: Payments
+  description: Payments app enables bill payments
   version: 1.0.0
 
-basePath: /
-
+basePath: /payments/v1/
 consumes:
   - application/json
 produces:
   - application/json
 
+
 paths:
+  /airtime:
+    get:
+      tags: [Airtime Recharge]
+      operationId: payments.wallets_api.airtime_recharge
+      summary: Top up airtime
+      description: Performs recharge for the supplied phone number and provider code (example "airtel") from the user's wallet
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: phone_number
+          type: string
+          required: true
+        - in: query
+          name: amount
+          type: integer
+          required: true
+        - in: query
+          name: provider_code
+          type: string
+          required: true
+  #        schema:
+  #          $ref: '#/definitions/AirtimeRecharge'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
-# todo: add routes
+#definitions:
+#  AirtimeRecharge:
+#    type: object
+#    properties:
+#      phone_number:
+#        type: string
+#      amount:
+#        type: integer
+#      provider_code:
+#        type: string
 
+#
 #  /login:
 #    post:
 #      tags: [Login]
@@ -289,6 +329,8 @@ paths:
 #        440:
 #          description: Session expired, login again
 #
+
+
 #definitions:
 #  PersonalInfo:
 #    type: object
