@@ -1,12 +1,13 @@
 import os
 import time
 import json
+import requests
 from itertools import groupby
 from flask import request, jsonify, render_template
-import requests
 from setup import db, app
 from setup import base_dir
 from notes.models import ProductSchema, NoteSchema, Note, Product
+
 
 # init schema
 product_schema = ProductSchema()
@@ -16,7 +17,8 @@ notes_schema = NoteSchema(many=True)
 
 
 def format_time(obj):
-    obj['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(obj['datetime'])))
+    if 'datetime' in obj and obj['datetime']:
+        obj['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(obj['datetime'])))
     # return object
 
 
@@ -65,38 +67,27 @@ def hello_world():
 
 
 # Get all notes
-def get_notes():
-    all_notes = Note.query.all()
+def get_notes(id=None):
+    if id:
+        all_notes = [Note.query.filter_by(id=id).first(),]
+    else:
+        all_notes = Note.query.all()
     results = notes_schema.dump(all_notes)
     [format_time(result) for result in results]
     return jsonify(results)
 
 
-# Get one note
-@app.route('/notes/get', methods=['GET'])
-def get_note():
-    id_to_get = request.args['id']
-    all_notes = Note.query.filter_by(id=id_to_get).first()
-    result = note_schema.dump(all_notes)
-    format_time(result)
-    return jsonify(result)
-
-
 # Add notes
-@app.route('/notes/add', methods=['GET'])
-def add_note():
+def add_note(content):
     if request.user_agent.platform and request.user_agent.browser:
         user = request.user_agent.platform + '_' + request.user_agent.browser
     else:
         user = request.user_agent.string
         user = user.split('/')[0]
-    content = request.args['content']
-    date_time = time.time()
-    new_note = Note(user, date_time, content)
-
-    db.session.add(new_note)
+    note = {'user': user, 'content': content, 'datetime': str(time.time())}
+    note = note_schema.load(note)
+    db.session.add(note)
     db.session.commit()
-    Note.count[user] += 1
     return 'Note added successfully', 200
 
 
@@ -116,9 +107,8 @@ def delete_note():
 # Create  product
 @app.route('/product', methods=['POST'])
 def add_product():
-    name = request.json['name']
-    new_product = Product(name)
-
+    new_product = {'name': request.json['name']}
+    new_product = product_schema.load(new_product)
     db.session.add(new_product)
     db.session.commit()
     return product_schema.jsonify(new_product)
@@ -134,7 +124,7 @@ def get_products():
 
 @app.route('/hng_team_neon', methods=['GET'])
 def get_team_form():
-    return render_template("hng.html")
+    return render_template('hng.html')
 
 
 @app.route('/hng_team_neon.json', methods=['GET'])

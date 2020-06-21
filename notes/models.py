@@ -1,41 +1,34 @@
-from collections import defaultdict
 from setup import db, ma
 
 
 # Asset class
 class Product(db.Model):
+    __bind_key__ = 'notes'
+    __tablename__ = 'product'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), unique=True)
-
-    def __init__(self, name):
-        self.name = name
 
 
 # Notes -- new functionality
 class Note(db.Model):
+    __bind_key__ = 'notes'
+    __tablename__ = 'note'
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     datetime = db.Column(db.String)
     user = db.Column(db.String(100))
     content = db.Column(db.String)
-    count = defaultdict(int)
-
-    def __init__(self, user, date_time, content):
-        self.user = user
-        self.datetime = date_time
-        self.content = content
-
-    @classmethod
-    def get_count(cls):
-        return cls.count
 
 
 # Product Schema
-class ProductSchema(ma.Schema):
+class ProductSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name')
+        model = Product
+        sqla_session = db.session
 
 
 # Notes Schema
-class NoteSchema(ma.Schema):
+class NoteSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'datetime', 'user', 'content')
+        model = Note
+        sqla_session = db.session
