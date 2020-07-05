@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import git
 import requests
 from itertools import groupby
 from flask import request, jsonify, render_template
@@ -104,8 +105,6 @@ def delete_note():
     note = Note.query.filter_by(id=id_to_delete).first()
     db.session.delete(note)
     db.session.commit()
-
-    user = note.user
     return 'Note deleted successfully', 200
 
 
@@ -162,3 +161,15 @@ def greq():
 @app.route('/head', methods=['GET'])
 def get_headers():
     return jsonify(dict(request.headers))
+
+
+@app.route('/update_server', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        repo = git.Repo('https://github.com/cAtaman/Convergence')
+        origin = repo.remotes.origin
+        origin.pull()
+        return 'Updated PythonAnywhere successfully', 200
+    else:
+        return 'Wrong event type', 400
+
