@@ -106,7 +106,6 @@ def delete_note():
     db.session.commit()
 
     user = note.user
-    Note.count[user] -= 1
     return 'Note deleted successfully', 200
 
 

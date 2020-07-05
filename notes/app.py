@@ -97,7 +97,7 @@ def hello_world():
         <head>
             <title> {title} </title>
         </head>
-    
+
         <body>
             {paragraphs_with_tags}
         </body >
@@ -171,7 +171,6 @@ def delete_note():
     db.session.commit()
 
     user = note.user
-    Note.count[user] -= 1
     return 'Note deleted successfully', 200
 
 
