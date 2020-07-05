@@ -19,7 +19,7 @@ paths:
       summary: Get all notes
       description: Lists all available notes in the the database
       produces:
-        - application/json
+        - text/html
       parameters:
         - name: id
           in: query

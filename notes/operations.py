@@ -21,7 +21,15 @@ def format_time(obj):
         obj['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(obj['datetime'])))
     # return object
 
+html = '''<html>
+    <head>
+        <title> {title} </title>
+    </head>
 
+    <body style="background-color:grey;color:black">
+        {paragraphs_with_tags}
+    </body >
+</html >'''
 # ===============================================================
 # ======================  Endpoints  ============================
 # ===============================================================
@@ -32,16 +40,6 @@ def hello_world():
     users = ['<p> {}: {} </p>'.format(user, len(notes[user])) for user in notes]
     users = ''.join(users)
     count = sum([len(notes[user]) for user in notes])
-
-    html = '''<html>
-        <head>
-            <title> {title} </title>
-        </head>
-
-        <body>
-            {paragraphs_with_tags}
-        </body >
-    </html >'''
 
     title = 'AtamanBC - The one true timeline'
     message = '</br>' \
@@ -59,7 +57,7 @@ def hello_world():
               '</br>' \
               '</br>' \
               '<h3> Go to... </h3>' \
-              '<a href="/notes"> List of Notes </a>' \
+              '<a href="notes/v1/notes"> List of Notes </a>' \
               '</br>' \
               '<a href="/products"> List of Products </a>'
 
@@ -74,7 +72,12 @@ def get_notes(id=None):
         all_notes = Note.query.all()
     results = notes_schema.dump(all_notes)
     [format_time(result) for result in results]
-    return jsonify(results)
+    form = '<p>Note {:3} ({}): {}</p>'
+    dvcs = {'android_chrome': 'Redmi', 'windows_chrome': 'Envy', 'python-requests': 'Red Py'}
+    ret = ''
+    for e in results:
+        ret += form.format(e['id'], dvcs[e['user']], e['content'])
+    return html.format(title='Notes', paragraphs_with_tags=ret)
 
 
 # Add notes
