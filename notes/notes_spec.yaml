@@ -12,7 +12,7 @@ produces:
 
 
 paths:
-  /notes:
+  /:
     get:
       tags: [Get Notes]
       operationId: notes.operations.get_notes
@@ -37,7 +37,7 @@ paths:
         404:
           description: User does not exist
 
-  /notes/add:
+  /add:
     get:
       tags: [Add]
       operationId: notes.operations.add_note
