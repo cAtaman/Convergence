@@ -21,6 +21,7 @@ def format_time(obj):
         obj['datetime'] = time.strftime("%a, %d-%b-%Y %H:%M:%S", time.localtime(float(obj['datetime'])))
     # return object
 
+
 html = '''<html>
     <head>
         <title> {title} </title>
@@ -33,6 +34,8 @@ html = '''<html>
 # ===============================================================
 # ======================  Endpoints  ============================
 # ===============================================================
+
+
 @app.route('/')
 def hello_world():
     notes = notes_schema.dump(Note.query.all())
@@ -57,7 +60,7 @@ def hello_world():
               '</br>' \
               '</br>' \
               '<h3> Go to... </h3>' \
-              '<a href="notes/v1/notes"> List of Notes </a>' \
+              '<a href="notes/v1/"> List of Notes </a>' \
               '</br>' \
               '<a href="/products"> List of Products </a>'
 
@@ -148,7 +151,6 @@ def add_member():
     return 'Record successfully added', 200
 
 
-#####
 # Get all products
 @app.route('/req', methods=['GET'])
 def greq():
@@ -156,3 +158,8 @@ def greq():
     req = requests.get(url)
     return req.content
 
+
+# Get headers
+@app.route('/head', methods=['GET'])
+def get_headers():
+    return jsonify(dict(request.headers))
