@@ -215,8 +215,8 @@ def webhook():
                 payload=payload))
             abort(abort_code)
 
-        if payload['ref'] != 'refs/heads/master':
-            return json.dumps({'msg': 'Not master; ignoring'})
+        if payload['ref'] != 'refs/heads/pythonanywhere-deploy':
+            return json.dumps({'msg': 'Not pythonanywhere-deploy; ignoring'})
 
         repo = git.Repo('/home/AtamanBC/Convergence/')
         origin = repo.remotes.origin
