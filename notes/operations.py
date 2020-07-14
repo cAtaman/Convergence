@@ -24,6 +24,7 @@ def format_time(obj):
 
 html = '''<html>
     <head>
+        <meta name="google-site-verification" content="wfvx2mVydsdqozFPfnvLvSzUCmslCdUCu7zs7ws0vls" />
         <title> {title} </title>
     </head>
 
