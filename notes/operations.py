@@ -61,7 +61,9 @@ def hello_world():
               '</br>' \
               '</br>' \
               '<h3> Go to... </h3>' \
-              '<a href="notes/v1/"> List of Notes </a>' \
+              '<a href="/"> List of Notes (Restricted)</a>' \
+              '</br>' \
+              '<a href="/payments/v1"> Payments API </a>' \
               '</br>' \
               '<a href="/products"> List of Products </a>'
 
