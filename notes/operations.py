@@ -35,6 +35,7 @@ def format_time(obj):
 
 html = '''<html>
     <head>
+        <meta name="google-site-verification" content="wfvx2mVydsdqozFPfnvLvSzUCmslCdUCu7zs7ws0vls" />
         <title> {title} </title>
     </head>
 
@@ -71,7 +72,9 @@ def hello_world():
               '</br>' \
               '</br>' \
               '<h3> Go to... </h3>' \
-              '<a href="notes/v1/"> List of Notes </a>' \
+              '<a href="/"> List of Notes (Restricted)</a>' \
+              '</br>' \
+              '<a href="/payments/v1/ui"> Payments API </a>' \
               '</br>' \
               '<a href="/products"> List of Products </a>'
 
@@ -87,7 +90,7 @@ def get_notes(id=None):
     results = notes_schema.dump(all_notes)
     [format_time(result) for result in results]
     form = '<p>Note {:3} ({}): {}</p>'
-    dvcs = {'android_chrome': 'Redmi', 'windows_chrome': 'Envy', 'python-requests': 'Red Py'}
+    dvcs = {'android_chrome': 'Redmi', 'windows_chrome': 'Envy', 'python-requests': 'Red Py', 'linux_firefox': 'Ubuntu'}
     ret = ''
     for e in results:
         ret += form.format(e['id'], dvcs[e['user']], e['content'])
