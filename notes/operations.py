@@ -1,9 +1,12 @@
 import os
 import time
 import json
+import git
+import hmac
+import hashlib
 import requests
 from itertools import groupby
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, abort
 from setup import db, app
 from setup import base_dir
 from notes.models import ProductSchema, NoteSchema, Note, Product
@@ -14,6 +17,14 @@ product_schema = ProductSchema()
 note_schema = NoteSchema()
 products_schema = ProductSchema(many=True)
 notes_schema = NoteSchema(many=True)
+
+
+def is_valid_signature(x_hub_signature, data, private_key):
+    hash_algorithm, github_signature = x_hub_signature.split('=', 1)
+    algorithm = hashlib.__dict__.get(hash_algorithm)
+    encoded_key = bytes(private_key, 'latin-1')
+    mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
+    return hmac.compare_digest(mac.hexdigest(), github_signature)
 
 
 def format_time(obj):
@@ -107,8 +118,6 @@ def delete_note():
     note = Note.query.filter_by(id=id_to_delete).first()
     db.session.delete(note)
     db.session.commit()
-
-    user = note.user
     return 'Note deleted successfully', 200
 
 
@@ -165,3 +174,65 @@ def greq():
 @app.route('/head', methods=['GET'])
 def get_headers():
     return jsonify(dict(request.headers))
+
+
+@app.route('/update_server', methods=['POST'])
+def webhook():
+    if request.method != 'POST':
+        return 'OK'
+    else:
+        abort_code = 418
+        # Do initial validations on required headers
+        if 'X-Github-Event' not in request.headers:
+            abort(abort_code)
+        if 'X-Github-Delivery' not in request.headers:
+            abort(abort_code)
+        if 'X-Hub-Signature' not in request.headers:
+            abort(abort_code)
+        if not request.is_json:
+            abort(abort_code)
+        if 'User-Agent' not in request.headers:
+            abort(abort_code)
+        ua = request.headers.get('User-Agent')
+        if not ua.startswith('GitHub-Hookshot/'):
+            abort(abort_code)
+
+        event = request.headers.get('X-GitHub-Event')
+        if event == "ping":
+            return json.dumps({'msg': 'Hi!'})
+        if event != "push":
+            return json.dumps({'msg': "Wrong event type"})
+
+        x_hub_signature = request.headers.get('X-Hub-Signature')
+        # webhook content type should be application/json for request.data to have the payload
+        # request.data is empty in case of x-www-form-urlencoded
+
+        w_secret = os.environ['GH_SECRET']
+        if not is_valid_signature(x_hub_signature, request.data, w_secret):
+            print('Deploy signature failed: {sig}'.format(sig=x_hub_signature))
+            abort(abort_code)
+
+        payload = request.get_json()
+        if payload is None:
+            print('Deploy payload is empty: {payload}'.format(
+                payload=payload))
+            abort(abort_code)
+
+        if payload['ref'] != 'refs/heads/pythonanywhere-deploy':
+            return json.dumps({'msg': 'Not pythonanywhere-deploy; ignoring'})
+
+        repo = git.Repo('/home/AtamanBC/Convergence/')
+        origin = repo.remotes.origin
+
+        pull_info = origin.pull()
+
+        if len(pull_info) == 0:
+            return json.dumps({'msg': "Didn't pull any information from remote!"})
+        if pull_info[0].flags > 128:
+            return json.dumps({'msg': "Didn't pull any information from remote!"})
+
+        commit_hash = pull_info[0].commit.hexsha
+        build_commit = f'build_commit = "{commit_hash}"'
+        print(f'{build_commit}')
+        return 'Updated PythonAnywhere server to commit {commit}'.format(commit=commit_hash)
+
