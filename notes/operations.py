@@ -121,7 +121,7 @@ def migrate_db():
         print(e)
         return 'Something went wrong', 400
 
-    return 'success', 200
+    return 'migration successful', 200
 
 
 # Delete note
