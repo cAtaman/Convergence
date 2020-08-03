@@ -9,13 +9,11 @@ from itertools import groupby
 from flask import request, jsonify, render_template, abort
 from setup import db, app
 from setup import base_dir
-from notes.models import ProductSchema, NoteSchema, Note, Product
+from notes.models import NoteSchema, Note
 
 
 # init schema
-product_schema = ProductSchema()
 note_schema = NoteSchema()
-products_schema = ProductSchema(many=True)
 notes_schema = NoteSchema(many=True)
 
 
@@ -35,6 +33,7 @@ def format_time(obj):
 
 html = '''<html>
     <head>
+        <meta name="google-site-verification" content="wfvx2mVydsdqozFPfnvLvSzUCmslCdUCu7zs7ws0vls" />
         <title> {title} </title>
     </head>
 
@@ -71,9 +70,9 @@ def hello_world():
               '</br>' \
               '</br>' \
               '<h3> Go to... </h3>' \
-              '<a href="notes/v1/"> List of Notes </a>' \
+              '<a href="/"> List of Notes (Restricted)</a>' \
               '</br>' \
-              '<a href="/products"> List of Products </a>'
+              '<a href="/payments/v1/ui"> Payments API </a>'
 
     return html.format(title=title, paragraphs_with_tags=message)
 
@@ -87,10 +86,13 @@ def get_notes(id=None):
     results = notes_schema.dump(all_notes)
     [format_time(result) for result in results]
     form = '<p>Note {:3} ({}): {}</p>'
-    dvcs = {'android_chrome': 'Redmi', 'windows_chrome': 'Envy', 'python-requests': 'Red Py'}
+    dvcs = {'android_chrome': 'Redmi', 'windows_chrome': 'Envy', 'python-requests': 'Red Py', 'linux_firefox': 'Linux-fx', 'linux_chrome': 'Linux'}
     ret = ''
     for e in results:
-        ret += form.format(e['id'], dvcs[e['user']], e['content'])
+        if e['user'] in dvcs:
+            ret += form.format(e['id'], dvcs[e['user']], e['content'])
+        else:
+            ret += form.format(e['id'], e['user'], e['content'])
     return html.format(title='Notes', paragraphs_with_tags=ret)
 
 
@@ -108,6 +110,29 @@ def add_note(content):
     return 'Note added successfully', 200
 
 
+@app.route('/migrate', methods=['GET'])
+def migrate_db():
+    db.create_all()
+    schema = NoteSchema()
+    session = schema.Meta.sqla_session
+
+    csv_path = os.path.join(base_dir, 'notes', 'db', 'note.csv')
+    notes_csv = open(csv_path, 'r').readlines()[2:]
+
+    try:
+        for note in notes_csv:
+            items = note.strip().split(',')
+            print(items)
+            note_o = schema.load({'datetime': items[1], 'user': items[2], 'content': items[3]})
+            session.add(note_o)
+        session.commit()
+    except Exception as e:
+        print(e)
+        return 'Something went wrong', 400
+
+    return 'migration successful', 200
+
+
 # Delete note
 @app.route('/notes/delete', methods=['GET'])
 def delete_note():
@@ -116,24 +141,6 @@ def delete_note():
     db.session.delete(note)
     db.session.commit()
     return 'Note deleted successfully', 200
-
-
-# Create  product
-@app.route('/product', methods=['POST'])
-def add_product():
-    new_product = {'name': request.json['name']}
-    new_product = product_schema.load(new_product)
-    db.session.add(new_product)
-    db.session.commit()
-    return product_schema.jsonify(new_product)
-
-
-# Get all products
-@app.route('/products', methods=['GET'])
-def get_products():
-    all_products = Product.query.all()
-    result = products_schema.dump(all_products)
-    return jsonify(result)
 
 
 @app.route('/hng_team_neon', methods=['GET'])
