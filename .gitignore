@@ -2,6 +2,7 @@ venv/
 .idea/
 
 *.pyc
+*wsgi.py
 __pycache__/
 
 instance/
