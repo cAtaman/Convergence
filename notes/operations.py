@@ -108,14 +108,19 @@ def migrate_db():
     session = schema.Meta.sqla_session
 
     csv_path = os.path.join(base_dir, 'notes', 'db', 'note.csv')
-    notes_csv = open(csv_path, 'r').readlines()
+    notes_csv = open(csv_path, 'r').readlines()[2:]
 
-    for note in notes_csv:
-        items = note.strip().split(',')
-        print(items)
-        note_o = schema.load({'datetime': items[1], 'user': items[2], 'content': items[3]})
-        session.add(note_o)
-    session.commit()
+    try:
+        for note in notes_csv:
+            items = note.strip().split(',')
+            print(items)
+            note_o = schema.load({'datetime': items[1], 'user': items[2], 'content': items[3]})
+            session.add(note_o)
+        session.commit()
+    except Exception as e:
+        print(e)
+        return 'Something went wrong', 400
+
     return 'success', 200
 
 
@@ -126,8 +131,6 @@ def delete_note():
     note = Note.query.filter_by(id=id_to_delete).first()
     db.session.delete(note)
     db.session.commit()
-
-    user = note.user
     return 'Note deleted successfully', 200
 
 
