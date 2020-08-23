@@ -1,3 +1,4 @@
+
 import os
 from setup import db, ma
 
@@ -21,3 +22,4 @@ class NoteSchema(ma.ModelSchema):
     class Meta:
         model = Note
         sqla_session = db.session
+db.create_all()
