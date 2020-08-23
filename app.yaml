@@ -1,0 +1,7 @@
+runtime: python38
+
+env_variables:
+  FLASK_ENV: "development"
+  WALLET_API_PUBLIC_KEY: "dfgshhhngf"
+  WALLET_API_SECRET_KEY: "dfsgaghfbs"
+
