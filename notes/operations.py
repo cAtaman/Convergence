@@ -3,7 +3,7 @@ import time
 import json
 import requests
 from itertools import groupby
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, redirect
 from setup import db, app
 from setup import base_dir
 from notes.models import NoteSchema, Note
@@ -36,6 +36,11 @@ html = '''<html>
 
 
 @app.route('/')
+def redirect_to_portfolio():
+    return redirect('https://portosaurus.github.io/chima_ataman/')
+
+
+@app.route('/index')
 def hello_world():
     notes = notes_schema.dump(Note.query.all())
     notes = {k: list(g) for k, g in groupby(notes, key=lambda x: x['user'])}
