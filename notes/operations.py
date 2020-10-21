@@ -77,7 +77,7 @@ def get_notes(id=None, ret_json=False):
         all_notes = [Note.query.filter_by(id=id).first(), ]
     else:
         all_notes = Note.query.all()
-    results = notes_schema.dump(all_notes)
+    results = sorted(notes_schema.dump(all_notes), key=lambda x: x['datetime'], reverse=True)
     [format_time(result) for result in results]
     if ret_json:
         return results
