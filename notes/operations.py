@@ -74,7 +74,7 @@ def hello_world():
 # Get all notes
 def get_notes(id=None, ret_json=False):
     if id:
-        all_notes = [Note.query.filter_by(id=id).first(),]
+        all_notes = [Note.query.filter_by(id=id).first(), ]
     else:
         all_notes = Note.query.all()
     results = notes_schema.dump(all_notes)
