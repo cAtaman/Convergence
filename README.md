@@ -6,7 +6,7 @@ This project has
  
  Hosted on AWS Elastic Beanstalk
  
- Live link: [http://atamanbc.tech/](http://atamanbc.tech/)
+ Live link: [http://atamanbc.tech/index](http://atamanbc.tech/index)
  
  
  ### *Ataman*
