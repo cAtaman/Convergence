@@ -3,3 +3,5 @@ steps:
   args: ["app", "deploy"]
 timeout: "1600s"
 
+substitutions:
+    _AMAZON_RDS_DB_URL: PLACEHOLDER_VALUE

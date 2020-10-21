@@ -2,7 +2,7 @@ runtime: python38
 
 env_variables:
   FLASK_ENV: "production"
-  AMAZON_RDS_DB_URL: $AMAZON_RDS_DB_URL
+  AMAZON_RDS_DB_URL: $_AMAZON_RDS_DB_URL
   WALLET_API_PUBLIC_KEY: "dfgshhhngf"
   WALLET_API_SECRET_KEY: "dfsgaghfbs"
 
