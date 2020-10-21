@@ -25,6 +25,10 @@ paths:
           in: query
           type: integer
           required: false
+        - name: ret_json
+          in: query
+          type: boolean
+          required: false
       responses:
         200:
           description: Returns a list of the requested notes

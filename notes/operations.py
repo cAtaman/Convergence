@@ -67,13 +67,16 @@ def hello_world():
 
 
 # Get all notes
-def get_notes(id=None):
+def get_notes(id=None, ret_json=False):
     if id:
-        all_notes = [Note.query.filter_by(id=id).first(),]
+        all_notes = [Note.query.filter_by(id=id).first(), ]
     else:
         all_notes = Note.query.all()
     results = notes_schema.dump(all_notes)
     [format_time(result) for result in results]
+    if ret_json:
+        return results
+
     form = '<p>Note {:3} ({}): {}</p>'
     dvcs = {'android_chrome': 'Redmi', 'windows_chrome': 'Envy', 'python-requests': 'Red Py', 'linux_firefox': 'Linux-fx', 'linux_chrome': 'Linux'}
     ret = ''
