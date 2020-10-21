@@ -3,8 +3,11 @@ steps:
   args: ["app", "deploy"]
 timeout: "1600s"
 
-- name: "debian"
-  args: ["sed", "-i", "s/$_placeholder_/${_AMAZON_RDS_DB_URL}/g", "app.yaml"]
+- name: "python"
+  args: ["-c", "import subprocess; subprocess.run(
+                    ['sed', '-i', 's/$_placeholder_/${_AMAZON_RDS_DB_URL}/g', 'app.yaml']
+                )"
+  ]
 
 substitutions:
     _AMAZON_RDS_DB_URL: PLACEHOLDER_VALUE
